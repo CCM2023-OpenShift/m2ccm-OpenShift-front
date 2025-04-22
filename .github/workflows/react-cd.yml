@@ -26,12 +26,21 @@ jobs:
 
       - name: Deploy to OpenShift
         run: |
-          oc new-app vite-oc || echo "App already exists, updating..."
-          oc rollout latest dc/vite-oc
+          oc get deployment vite-oc >/dev/null 2>&1 \
+          && echo "Deployment already exists, updating..." \
+          || oc new-app vite-oc
+          oc rollout restart deployment/vite-oc
 
       - name: Expose Frontend Service
         run: |
-          oc expose svc/vite-oc --port=3000 || echo "Route already exists"
+          set -e
+          if ! oc get svc vite-oc >/dev/null 2>&1; then
+            echo "Service vite-oc not found, skipping expose."
+          else
+            oc get route vite-oc >/dev/null 2>&1 \
+            && echo "Route already exists" \
+            || oc expose svc/vite-oc --port=3000
+          fi
 
       - name: Verify Deployment
         run: |
