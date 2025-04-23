@@ -1,13 +1,40 @@
-import React from 'react';
-import { useStore } from '../store';
+import { useEffect, useState } from 'react';
+import { Room } from '../services/Room';
+import { Booking } from '../services/Booking';
 import { Calendar, Users, BookOpen } from 'lucide-react';
 
 export const Dashboard = () => {
-    const { rooms, bookings } = useStore();
+    const [rooms, setRooms] = useState<Room[]>([]);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const roomsRes = await fetch('http://localhost:8080/rooms');
+                const bookingsRes = await fetch('http://localhost:8080/bookings');
+                const roomsData = await roomsRes.json();
+                const bookingsData = await bookingsRes.json();
+
+                setRooms(roomsData);
+                setBookings(bookingsData);
+            } catch (error) {
+                console.error("Erreur lors du chargement des données :", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     const upcomingBookings = bookings.filter(
         (booking) => new Date(booking.startTime) > new Date()
     );
+
+    if (loading) {
+        return <div className="p-6">Chargement...</div>;
+    }
 
     return (
         <div className="p-6">
@@ -49,11 +76,11 @@ export const Dashboard = () => {
                             <div key={booking.id} className="border-b pb-4">
                                 <h3 className="font-semibold">{booking.title}</h3>
                                 <p className="text-gray-600">
-                                    {new Date(booking.startTime).toLocaleString()} -
+                                    {new Date(booking.startTime).toLocaleString()} -{' '}
                                     {new Date(booking.endTime).toLocaleString()}
                                 </p>
                                 <p className="text-gray-600">
-                                    Salle: {rooms.find(room => room.id === booking.roomId)?.name}
+                                    Salle : {booking.room && booking.room.name ? booking.room.name : 'Salle inconnue'}
                                 </p>
                             </div>
                         ))}

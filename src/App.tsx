@@ -2,11 +2,12 @@ import React from 'react';
 import { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { RoomList } from './components/RoomList';
+import { EquipmentList } from './components/EquipmentList';
 import { BookingForm } from './components/BookingForm';
-import { LayoutGrid, Calendar, BookOpen } from 'lucide-react';
+import { LayoutGrid, Calendar, BookOpen, Monitor } from 'lucide-react';
 
 function App() {
-    const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'booking'>('dashboard');
+    const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking'>('dashboard');
 
     const renderPage = () => {
         switch (currentPage) {
@@ -14,6 +15,8 @@ function App() {
                 return <Dashboard />;
             case 'rooms':
                 return <RoomList />;
+            case 'equipment':
+                return <EquipmentList />;
             case 'booking':
                 return <BookingForm />;
             default:
@@ -49,6 +52,17 @@ function App() {
                         >
                             <BookOpen className="w-5 h-5 mr-3" />
                             Salles
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage('equipment')}
+                            className={`w-full flex items-center px-4 py-2 rounded-lg mb-2 ${
+                                currentPage === 'equipment'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                        >
+                            <Monitor className="w-5 h-5 mr-3" />
+                            Équipements
                         </button>
                         <button
                             onClick={() => setCurrentPage('booking')}

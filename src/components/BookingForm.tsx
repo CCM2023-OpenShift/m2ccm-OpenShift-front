@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { useStore, addBooking } from '../store';
-import { Calendar, Clock, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Room } from '../services/Room';
+import { Equipment } from '../services/Equipment';
+import { Booking } from '../services/Booking';
 
 export const BookingForm = () => {
-    const { rooms, equipment } = useStore();
+    const [rooms, setRooms] = useState<Room[]>([]);
+    const [equipment, setEquipment] = useState<Equipment[]>([]);
+
     const [formData, setFormData] = useState({
         title: '',
         roomId: '',
@@ -14,20 +17,54 @@ export const BookingForm = () => {
         organizer: '',
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Utilisation de useEffect pour récupérer les données des salles et équipements
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const roomsData = await Room.getAll();  // Récupère toutes les salles
+                console.log(roomsData);
+                const equipmentData = await Equipment.getAll();  // Récupère tous les équipements
+                setRooms(roomsData);
+                setEquipment(equipmentData);
+            } catch (error) {
+                console.error('Erreur lors du chargement des données', error);
+            }
+        };
+
+        fetchData();
+    }, []);  // Le tableau vide [] assure que l'effet s'exécute uniquement au montage
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        addBooking({
-            id: Date.now().toString(),
-            ...formData,
-            attendees: parseInt(formData.attendees),
-        });
+
+        // Créer une nouvelle instance de Booking
+        const booking = new Booking();
+        booking.title = formData.title;
+        booking.startTime = formData.startTime;
+        booking.endTime = formData.endTime;
+        booking.attendees = parseInt(formData.attendees);
+        booking.organizer = formData.organizer;
+        booking.room = rooms.find((room) => room.id === formData.roomId) as Room; // Associer la salle
+        booking.equipment = equipment.filter((equip) =>
+            formData.equipment.includes(equip.id)
+        ); // Associer les équipements
+
+        try {
+            // Appeler la méthode create() de Booking pour enregistrer la réservation
+            await booking.create();
+            alert("Réservation créée avec succès!");
+        } catch (error) {
+            alert("Erreur lors de la création de la réservation.");
+        }
+
+        // Réinitialiser le formulaire
         setFormData({
             title: '',
             roomId: '',
             startTime: '',
             endTime: '',
             attendees: '',
-            equipment: [],
+            equipment: [] as string[],
             organizer: '',
         });
     };
