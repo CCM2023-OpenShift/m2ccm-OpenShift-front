@@ -34,10 +34,11 @@ export class Equipment {
 
     public async create(): Promise<Equipment> {
         try {
+            console.log(this)
             const response = await fetch(`${Equipment.baseURL}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.toCreate())
+                body: JSON.stringify(this)
             });
 
             if (!response.ok) {

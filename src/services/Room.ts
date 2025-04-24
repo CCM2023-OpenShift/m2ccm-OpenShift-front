@@ -22,24 +22,25 @@ export class Room {
         return this;
     }
 
-    public toCreate(): object {
+    public toUpdate(): object {
         return {
             name: this.name,
             capacity: this.capacity,
-            equipment: this.equipment.map(e => e.id) // sending equipment as array of IDs
+            equipment: this.equipment
         };
-    }
-
-    public toUpdate(): object {
-        return this.toCreate();
     }
 
     public async create(): Promise<Room> {
         try {
+
+            const formRoom = new FormData();
+            formRoom.append('name', this.name);
+            formRoom.append('capacity', this.capacity.toString());
+            this.equipment.forEach(eq => formRoom.append('equipment', eq.id));
+
             const response = await fetch(`${Room.baseURL}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.toCreate())
+                body: formRoom
             });
 
             if (!response.ok) {

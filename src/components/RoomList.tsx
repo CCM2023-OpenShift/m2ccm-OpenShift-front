@@ -22,7 +22,10 @@ export const RoomList = () => {
         e.preventDefault();
         const roomData = {
             ...formData,
-            capacity: parseInt(formData.capacity),
+            capacity: Number(formData.capacity),
+            equipment: formData.equipment
+                .map(id => equipment.find(e => e.id === parseInt(id)))
+                .filter((e): e is Equipment => e !== undefined),
         };
 
         if (editingRoom?.id) {
@@ -41,7 +44,7 @@ export const RoomList = () => {
         setFormData({
             name: room.name,
             capacity: room.capacity.toString(),
-            equipment: room.equipment.map(e => e.id),
+            equipment: room.equipment.map(e => e.id.toString()),
         });
         setIsModalOpen(true);
     };
@@ -149,7 +152,7 @@ export const RoomList = () => {
                                     onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     required
-                                    min="1"
+                                    min="0"
                                 />
                             </div>
 

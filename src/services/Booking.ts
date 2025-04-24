@@ -46,10 +46,11 @@ export class Booking {
 
     public async create(): Promise<Booking> {
         try {
+            console.log(this)
             const response = await fetch(`${Booking.baseURL}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.toUpdate()),
+                body: JSON.stringify(this),
             });
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
