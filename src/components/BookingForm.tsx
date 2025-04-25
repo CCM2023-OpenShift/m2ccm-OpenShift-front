@@ -47,7 +47,10 @@ export const BookingForm = () => {
         booking.room = rooms.find((room) => room.id === formData.roomId) as Room; // Associer la salle
         booking.equipment = equipment.filter((equip) =>
             formData.equipment.includes(equip.id)
-        ); // Associer les équipements
+        );
+
+        console.log(formData)
+        console.log(booking)
 
         try {
             // Appeler la méthode create() de Booking pour enregistrer la réservation
