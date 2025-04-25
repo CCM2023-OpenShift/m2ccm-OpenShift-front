@@ -46,11 +46,18 @@ export class Booking {
 
     public async create(): Promise<Booking> {
         try {
-            console.log(this)
+            const formBooking = new FormData();
+            formBooking.append('title', this.title);
+            formBooking.append('startTime', this.startTime);
+            formBooking.append('endTime', this.endTime);
+            formBooking.append('attendees', this.attendees.toString());
+            formBooking.append('organizer', this.organizer);
+            formBooking.append('roomId', this.room.id);
+            this.equipment.forEach(eq => formBooking.append('equipment', eq.id));
+
             const response = await fetch(`${Booking.baseURL}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this),
+                body: formBooking,
             });
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -65,10 +72,18 @@ export class Booking {
 
     public async update(): Promise<Booking> {
         try {
+            const formBooking = new FormData();
+            formBooking.append('title', this.title);
+            formBooking.append('startTime', this.startTime);
+            formBooking.append('endTime', this.endTime);
+            formBooking.append('attendees', this.attendees.toString());
+            formBooking.append('organizer', this.organizer);
+            formBooking.append('roomId', this.room.id);
+            this.equipment.forEach(eq => formBooking.append('equipment', eq.id));
+
             const response = await fetch(`${Booking.baseURL}/${this.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.toUpdate()),
+                body: formBooking,
             });
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);

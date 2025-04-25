@@ -34,11 +34,13 @@ export class Equipment {
 
     public async create(): Promise<Equipment> {
         try {
-            console.log(this)
+            const formEquipment = new FormData();
+            formEquipment.append('name', this.name);
+            formEquipment.append('description', this.description);
+
             const response = await fetch(`${Equipment.baseURL}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this)
+                body: formEquipment
             });
 
             if (!response.ok) {
@@ -55,10 +57,13 @@ export class Equipment {
 
     public async update(): Promise<Equipment> {
         try {
+            const formEquipment = new FormData();
+            formEquipment.append('name', this.name);
+            formEquipment.append('description', this.description);
+
             const response = await fetch(`${Equipment.baseURL}/${this.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.toUpdate())
+                body: formEquipment
             });
 
             if (!response.ok) {

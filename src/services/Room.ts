@@ -57,10 +57,14 @@ export class Room {
 
     public async update(): Promise<Room> {
         try {
+            const formRoom = new FormData();
+            formRoom.append('name', this.name);
+            formRoom.append('capacity', this.capacity.toString());
+            this.equipment.forEach(eq => formRoom.append('equipment', eq.id));
+
             const response = await fetch(`${Room.baseURL}/${this.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.toUpdate())
+                body: formRoom
             });
 
             if (!response.ok) {
