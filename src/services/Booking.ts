@@ -10,7 +10,6 @@ export class Booking {
     public attendees!: number;
     public organizer!: string;
     public room!: Room;
-    public equipment!: Equipment[];
 
     errors!: object;
 
@@ -28,7 +27,6 @@ export class Booking {
         this.attendees = json?.attendees;
         this.organizer = json?.organizer;
         this.room = json?.room;
-        this.equipment = json?.equipment ?? [];
         return this;
     }
 
@@ -40,12 +38,13 @@ export class Booking {
             attendees: this.attendees,
             organizer: this.organizer,
             room: this.room,
-            equipment: this.equipment,
         };
     }
 
     public async create(): Promise<Booking> {
         try {
+            console.log(JSON.stringify(this));
+
             const formBooking = new FormData();
             formBooking.append('title', this.title);
             formBooking.append('startTime', this.startTime);
@@ -53,7 +52,6 @@ export class Booking {
             formBooking.append('attendees', this.attendees.toString());
             formBooking.append('organizer', this.organizer);
             formBooking.append('roomId', this.room.id);
-            this.equipment.forEach(eq => formBooking.append('equipment', eq.id));
 
             const response = await fetch(`${Booking.baseURL}`, {
                 method: 'POST',
@@ -79,7 +77,6 @@ export class Booking {
             formBooking.append('attendees', this.attendees.toString());
             formBooking.append('organizer', this.organizer);
             formBooking.append('roomId', this.room.id);
-            this.equipment.forEach(eq => formBooking.append('equipment', eq.id));
 
             const response = await fetch(`${Booking.baseURL}/${this.id}`, {
                 method: 'PUT',
@@ -150,9 +147,5 @@ export class Booking {
 
     public getRoom(): Room {
         return this.room;
-    }
-
-    public getEquipment(): Equipment[] {
-        return this.equipment;
     }
 }

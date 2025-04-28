@@ -32,7 +32,6 @@ export class Room {
 
     public async create(): Promise<Room> {
         try {
-
             const formRoom = new FormData();
             formRoom.append('name', this.name);
             formRoom.append('capacity', this.capacity.toString());

@@ -5,7 +5,6 @@ import { Booking } from '../services/Booking';
 
 export const BookingForm = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
-    const [equipment, setEquipment] = useState<Equipment[]>([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -13,7 +12,6 @@ export const BookingForm = () => {
         startTime: '',
         endTime: '',
         attendees: '',
-        equipment: [] as string[],
         organizer: '',
     });
 
@@ -22,10 +20,7 @@ export const BookingForm = () => {
         const fetchData = async () => {
             try {
                 const roomsData = await Room.getAll();  // Récupère toutes les salles
-                console.log(roomsData);
-                const equipmentData = await Equipment.getAll();  // Récupère tous les équipements
                 setRooms(roomsData);
-                setEquipment(equipmentData);
             } catch (error) {
                 console.error('Erreur lors du chargement des données', error);
             }
@@ -37,6 +32,14 @@ export const BookingForm = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Vérification si roomId est valide
+        const selectedRoom = rooms.find((room) => room.id == formData.roomId);
+        if (!selectedRoom) {
+            console.log("Selected room ID:", formData.roomId);
+            alert("La salle sélectionnée n'est pas valide.");
+            return;
+        }
+
         // Créer une nouvelle instance de Booking
         const booking = new Booking();
         booking.title = formData.title;
@@ -44,13 +47,7 @@ export const BookingForm = () => {
         booking.endTime = formData.endTime;
         booking.attendees = parseInt(formData.attendees);
         booking.organizer = formData.organizer;
-        booking.room = rooms.find((room) => room.id === formData.roomId) as Room; // Associer la salle
-        booking.equipment = equipment.filter((equip) =>
-            formData.equipment.includes(equip.id)
-        );
-
-        console.log(formData)
-        console.log(booking)
+        booking.room = selectedRoom; // Assigner la salle trouvée
 
         try {
             // Appeler la méthode create() de Booking pour enregistrer la réservation
@@ -67,7 +64,7 @@ export const BookingForm = () => {
             startTime: '',
             endTime: '',
             attendees: '',
-            equipment: [] as string[],
+            equipment: [] as string[], // Réinitialisation des équipements
             organizer: '',
         });
     };
@@ -149,30 +146,6 @@ export const BookingForm = () => {
                         required
                         min="1"
                     />
-                </div>
-
-                <div className="mb-4">
-                    <label className="block text-gray-700 font-semibold mb-2">
-                        Équipements nécessaires
-                    </label>
-                    <div className="space-y-2">
-                        {equipment.map((equip) => (
-                            <label key={equip.id} className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.equipment.includes(equip.id)}
-                                    onChange={(e) => {
-                                        const newEquipment = e.target.checked
-                                            ? [...formData.equipment, equip.id]
-                                            : formData.equipment.filter((id) => id !== equip.id);
-                                        setFormData({ ...formData, equipment: newEquipment });
-                                    }}
-                                    className="mr-2"
-                                />
-                                {equip.name}
-                            </label>
-                        ))}
-                    </div>
                 </div>
 
                 <div className="mb-6">
