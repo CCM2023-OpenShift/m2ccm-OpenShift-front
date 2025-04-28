@@ -1,13 +1,19 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { RoomList } from './components/RoomList';
 import { EquipmentList } from './components/EquipmentList';
 import { BookingForm } from './components/BookingForm';
+import { Login } from './components/Login';
 import { LayoutGrid, Calendar, BookOpen, Monitor } from 'lucide-react';
 
 function App() {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking'>('dashboard');
+
+    const handleLogin = (email: string, password: string) => {
+        // Add your authentication logic here
+        setIsAuthenticated(true);
+    };
 
     const renderPage = () => {
         switch (currentPage) {
@@ -23,6 +29,10 @@ function App() {
                 return <Dashboard />;
         }
     };
+
+    if (!isAuthenticated) {
+        return <Login onLogin={handleLogin} />;
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
