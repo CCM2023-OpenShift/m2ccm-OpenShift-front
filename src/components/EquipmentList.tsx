@@ -13,7 +13,7 @@ export const EquipmentList = () => {
     });
 
     useEffect(() => {
-        fetchEquipment();
+        void fetchEquipment();
     }, [fetchEquipment]);
 
     const handleSubmit = async (e: React.FormEvent) => {

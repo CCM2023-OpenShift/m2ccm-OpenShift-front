@@ -11,12 +11,10 @@ export const Dashboard = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const roomsRes = await fetch('http://localhost:8080/rooms');
-                const bookingsRes = await fetch('http://localhost:8080/bookings');
-                const roomsData = await roomsRes.json();
-                const bookingsData = await bookingsRes.json();
-
+                const roomsData = await Room.getAll();
                 setRooms(roomsData);
+
+                const bookingsData = await Booking.getAll();
                 setBookings(bookingsData);
             } catch (error) {
                 console.error("Erreur lors du chargement des données :", error);

@@ -14,8 +14,8 @@ export const RoomList = () => {
     });
 
     useEffect(() => {
-        fetchRooms();
-        fetchEquipment();
+        void fetchRooms();
+        void fetchEquipment();
     }, [fetchRooms, fetchEquipment]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -24,7 +24,7 @@ export const RoomList = () => {
             ...formData,
             capacity: Number(formData.capacity),
             equipment: formData.equipment
-                .map(id => equipment.find(e => e.id === parseInt(id)))
+                .map(id => equipment.find(e => String(e.id) === id))
                 .filter((e): e is Equipment => e !== undefined),
         };
 

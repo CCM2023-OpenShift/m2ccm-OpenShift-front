@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { RoomList } from './components/RoomList';
 import { EquipmentList } from './components/EquipmentList';
 import { BookingForm } from './components/BookingForm';
 import { Login } from './components/Login';
-import { LayoutGrid, Calendar, BookOpen, Monitor } from 'lucide-react';
+import { BookingHistory } from './components/BookingHistory';
+import { LayoutGrid, Calendar, BookOpen, Monitor, History } from 'lucide-react';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking'>('dashboard');
+    const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking' | 'history' >('dashboard');
 
     const handleLogin = (email: string, password: string) => {
         // Add your authentication logic here
@@ -25,14 +26,16 @@ function App() {
                 return <EquipmentList />;
             case 'booking':
                 return <BookingForm />;
+            case 'history':
+                return <BookingHistory />;
             default:
                 return <Dashboard />;
         }
     };
 
-    if (!isAuthenticated) {
-        return <Login onLogin={handleLogin} />;
-    }
+    // if (!isAuthenticated) {
+    //     return <Login onLogin={handleLogin} />;
+    // }
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
@@ -49,8 +52,19 @@ function App() {
                                     : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
-                            <LayoutGrid className="w-5 h-5 mr-3" />
+                            <LayoutGrid className="w-5 h-5 mr-3"/>
                             Tableau de bord
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage('history')}
+                            className={`w-full flex items-center px-4 py-2 rounded-lg mb-2 ${
+                                currentPage === 'history'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                        >
+                            <History className="w-5 h-5 mr-3"/>
+                            Historique
                         </button>
                         <button
                             onClick={() => setCurrentPage('rooms')}
@@ -60,7 +74,7 @@ function App() {
                                     : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
-                            <BookOpen className="w-5 h-5 mr-3" />
+                            <BookOpen className="w-5 h-5 mr-3"/>
                             Salles
                         </button>
                         <button
@@ -71,7 +85,7 @@ function App() {
                                     : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
-                            <Monitor className="w-5 h-5 mr-3" />
+                            <Monitor className="w-5 h-5 mr-3"/>
                             Équipements
                         </button>
                         <button
@@ -82,7 +96,7 @@ function App() {
                                     : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
-                            <Calendar className="w-5 h-5 mr-3" />
+                            <Calendar className="w-5 h-5 mr-3"/>
                             Réserver
                         </button>
                     </nav>

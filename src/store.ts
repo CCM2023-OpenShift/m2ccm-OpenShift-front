@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppState, Room, Equipment, Booking } from './types';
+import { AppState, Room, Equipment } from './types';
 import { Room as RoomService } from './services/Room';
 import { Equipment as EquipmentService } from './services/Equipment';
 import { Booking as BookingService } from './services/Booking';

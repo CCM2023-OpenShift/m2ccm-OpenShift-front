@@ -1,5 +1,4 @@
 import { Room } from './Room';
-import { Equipment } from './Equipment';
 import formatTimestamp from "../composable/formatTimestamp";
 
 export class Booking {
@@ -10,6 +9,7 @@ export class Booking {
     public attendees!: number;
     public organizer!: string;
     public room!: Room;
+    public equipment!: string[];
 
     errors!: object;
 
@@ -27,6 +27,7 @@ export class Booking {
         this.attendees = json?.attendees;
         this.organizer = json?.organizer;
         this.room = json?.room;
+        this.equipment = json?.equipment || [];
         return this;
     }
 
@@ -38,6 +39,7 @@ export class Booking {
             attendees: this.attendees,
             organizer: this.organizer,
             room: this.room,
+            equipment: this.equipment
         };
     }
 

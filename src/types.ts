@@ -13,7 +13,7 @@ export interface Equipment {
 
 export interface Booking {
     id: string;
-    roomId: string;
+    room: Room;
     title: string;
     startTime: string;
     endTime: string;

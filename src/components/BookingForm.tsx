@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Room } from '../services/Room';
-import { Equipment } from '../services/Equipment';
 import { Booking } from '../services/Booking';
 
 export const BookingForm = () => {
@@ -12,6 +11,7 @@ export const BookingForm = () => {
         startTime: '',
         endTime: '',
         attendees: '',
+        equipment: [] as string[],
         organizer: '',
     });
 
@@ -26,7 +26,7 @@ export const BookingForm = () => {
             }
         };
 
-        fetchData();
+        void fetchData();
     }, []);  // Le tableau vide [] assure que l'effet s'exécute uniquement au montage
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -54,7 +54,7 @@ export const BookingForm = () => {
             await booking.create();
             alert("Réservation créée avec succès!");
         } catch (error) {
-            alert("Erreur lors de la création de la réservation.");
+            alert(`Erreur lors de la création de la réservation : ${error}`);
         }
 
         // Réinitialiser le formulaire
@@ -64,7 +64,7 @@ export const BookingForm = () => {
             startTime: '',
             endTime: '',
             attendees: '',
-            equipment: [] as string[], // Réinitialisation des équipements
+            equipment: [] as string[],
             organizer: '',
         });
     };
