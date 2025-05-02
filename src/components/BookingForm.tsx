@@ -4,6 +4,7 @@ import { Booking } from '../services/Booking';
 
 export const BookingForm = () => {
     const [rooms, setRooms] = useState<Room[]>([]);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const [formData, setFormData] = useState({
         title: '',
@@ -32,42 +33,42 @@ export const BookingForm = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Vérification si roomId est valide
         const selectedRoom = rooms.find((room) => room.id == formData.roomId);
         if (!selectedRoom) {
-            console.log("Selected room ID:", formData.roomId);
             alert("La salle sélectionnée n'est pas valide.");
             return;
         }
 
-        // Créer une nouvelle instance de Booking
         const booking = new Booking();
         booking.title = formData.title;
         booking.startTime = formData.startTime;
         booking.endTime = formData.endTime;
         booking.attendees = parseInt(formData.attendees);
         booking.organizer = formData.organizer;
-        booking.room = selectedRoom; // Assigner la salle trouvée
+        booking.room = selectedRoom;
 
         try {
-            // Appeler la méthode create() de Booking pour enregistrer la réservation
             await booking.create();
             alert("Réservation créée avec succès!");
+            setErrorMessage('');
+            setFormData({
+                title: '',
+                roomId: '',
+                startTime: '',
+                endTime: '',
+                attendees: '',
+                equipment: [],
+                organizer: '',
+            });
         } catch (error) {
-            alert(`Erreur lors de la création de la réservation : ${error}`);
+            if (error instanceof Error) {
+                setErrorMessage(error.message);
+            } else {
+                setErrorMessage('Une erreur inconnue est survenue.');
+            }
         }
-
-        // Réinitialiser le formulaire
-        setFormData({
-            title: '',
-            roomId: '',
-            startTime: '',
-            endTime: '',
-            attendees: '',
-            equipment: [] as string[],
-            organizer: '',
-        });
     };
+
 
     return (
         <div className="p-6">
@@ -160,6 +161,12 @@ export const BookingForm = () => {
                         required
                     />
                 </div>
+
+                {errorMessage && (
+                    <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {errorMessage}
+                    </div>
+                )}
 
                 <button
                     type="submit"

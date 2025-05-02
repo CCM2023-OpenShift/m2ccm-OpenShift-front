@@ -45,8 +45,6 @@ export class Booking {
 
     public async create(): Promise<Booking> {
         try {
-            console.log(JSON.stringify(this));
-
             const formBooking = new FormData();
             formBooking.append('title', this.title);
             formBooking.append('startTime', this.startTime);
@@ -60,7 +58,11 @@ export class Booking {
                 body: formBooking,
             });
 
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            if (!response.ok) {
+                const errorBody = await response.json();
+                const errorMessage = errorBody?.error || `Erreur inconnue (code ${response.status})`;
+                throw new Error(errorMessage);
+            }
 
             const bookingJSON = await response.json();
             return this.fromJSON(bookingJSON);
