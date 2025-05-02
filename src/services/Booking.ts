@@ -45,27 +45,31 @@ export class Booking {
 
     public async create(): Promise<Booking> {
         try {
-            const formBooking = new FormData();
-            formBooking.append('title', this.title);
-            formBooking.append('startTime', this.startTime);
-            formBooking.append('endTime', this.endTime);
-            formBooking.append('attendees', this.attendees.toString());
-            formBooking.append('organizer', this.organizer);
-            formBooking.append('roomId', this.room.id);
+            const payload = {
+                title: this.title,
+                startTime: this.startTime,
+                endTime: this.endTime,
+                attendees: this.attendees,
+                organizer: this.organizer,
+                roomId: this.room.id
+            };
 
-            const response = await fetch(`${Booking.baseURL}`, {
+            const response = await fetch(Booking.baseURL, {
                 method: 'POST',
-                body: formBooking,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
             });
 
             if (!response.ok) {
-                const errorBody = await response.json();
-                const errorMessage = errorBody?.error || `Erreur inconnue (code ${response.status})`;
-                throw new Error(errorMessage);
+                const errorBody = await response.json().catch(() => ({}));
+                const msg = errorBody.message || `Erreur inconnue (code ${response.status})`;
+
+                throw new Error(msg);
             }
 
             const bookingJSON = await response.json();
             return this.fromJSON(bookingJSON);
+
         } catch (error) {
             console.error('Error creating booking:', error);
             throw error;
