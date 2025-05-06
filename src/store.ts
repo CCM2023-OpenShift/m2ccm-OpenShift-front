@@ -2,23 +2,31 @@ import { create } from 'zustand';
 import { AppState, Room, Equipment } from './types';
 import { Room as RoomService } from './services/Room';
 import { Equipment as EquipmentService } from './services/Equipment';
-import { Booking as BookingService } from './services/Booking';
 
 export const useStore = create<AppState>((set) => ({
     rooms: [],
     equipment: [],
     bookings: [],
     fetchRooms: async () => {
-        const rooms = await RoomService.getAll();
-        set({ rooms });
+        const response = await fetch('http://localhost:8080/rooms');
+        const data = await response.json();
+        set({ rooms: data });
     },
     fetchEquipment: async () => {
-        const equipment = await EquipmentService.getAll();
-        set({ equipment });
+        const response = await fetch('http://localhost:8080/equipment');
+        const data = await response.json();
+        set({ equipment: data });
+    },
+    fetchEquipmentFixed: async () => {
+        const response = await fetch('http://localhost:8080/equipment');
+        const data = await response.json();
+        const fixedEquipment = data.filter((equip: Equipment) => !equip.mobile);
+        set({ equipment: fixedEquipment });
     },
     fetchBookings: async () => {
-        const bookings = await BookingService.getAll();
-        set({ bookings });
+        const response = await fetch('http://localhost:8080/bookings');
+        const data = await response.json();
+        set({ bookings: data });
     },
     addRoom: async (room: Partial<Room>) => {
         const newRoom = new RoomService();
@@ -27,9 +35,9 @@ export const useStore = create<AppState>((set) => ({
         set((state) => ({ rooms: [...state.rooms, createdRoom] }));
     },
     updateRoom: async (room: Room) => {
-        const roomService = new RoomService();
-        Object.assign(roomService, room);
-        const updatedRoom = await roomService.update();
+        const roomInstance = new RoomService();
+        Object.assign(roomInstance, room);
+        const updatedRoom = await roomInstance.update();
         set((state) => ({
             rooms: state.rooms.map((r) => (r.id === updatedRoom.id ? updatedRoom : r)),
         }));

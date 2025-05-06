@@ -1,5 +1,5 @@
 import { Room } from './Room';
-import formatTimestamp from "../composable/formatTimestamp";
+import {BookingEquipment} from "./BookingEquipment.ts";
 
 export class Booking {
     public id!: string;
@@ -9,7 +9,7 @@ export class Booking {
     public attendees!: number;
     public organizer!: string;
     public room!: Room;
-    public equipment!: string[];
+    public bookingEquipments: BookingEquipment[] = [];
 
     errors!: object;
 
@@ -22,12 +22,19 @@ export class Booking {
     public fromJSON(json: any): Booking {
         this.id = json?.id;
         this.title = json?.title;
-        this.startTime = json?.startTime ? formatTimestamp(json.startTime) : '';
-        this.endTime = json?.endTime ? formatTimestamp(json.endTime) : '';
+        this.startTime = json?.startTime ? json.startTime : '';
+        this.endTime = json?.endTime ? json.endTime : '';
         this.attendees = json?.attendees;
         this.organizer = json?.organizer;
+
         this.room = json?.room;
-        this.equipment = json?.equipment || [];
+
+        this.bookingEquipments = (json?.bookingEquipments || []).map((be: any) => ({
+            id: be.id ?? null,
+            equipmentId: be.equipmentId ?? null,
+            quantity: be.quantity
+        }));
+
         return this;
     }
 
@@ -38,38 +45,30 @@ export class Booking {
             endTime: this.endTime,
             attendees: this.attendees,
             organizer: this.organizer,
-            room: this.room,
-            equipment: this.equipment
+            roomId: this.room.id,
+            bookingEquipments: this.bookingEquipments.map(be => ({
+                equipmentId: be.equipmentId,
+                quantity: be.quantity,
+            }))
         };
     }
 
     public async create(): Promise<Booking> {
         try {
-            const payload = {
-                title: this.title,
-                startTime: this.startTime,
-                endTime: this.endTime,
-                attendees: this.attendees,
-                organizer: this.organizer,
-                roomId: this.room.id
-            };
-
             const response = await fetch(Booking.baseURL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(this.toUpdate()),
             });
 
             if (!response.ok) {
                 const errorBody = await response.json().catch(() => ({}));
                 const msg = errorBody.message || `Erreur inconnue (code ${response.status})`;
-
                 throw new Error(msg);
             }
 
             const bookingJSON = await response.json();
             return this.fromJSON(bookingJSON);
-
         } catch (error) {
             console.error('Error creating booking:', error);
             throw error;
@@ -78,20 +77,17 @@ export class Booking {
 
     public async update(): Promise<Booking> {
         try {
-            const formBooking = new FormData();
-            formBooking.append('title', this.title);
-            formBooking.append('startTime', this.startTime);
-            formBooking.append('endTime', this.endTime);
-            formBooking.append('attendees', this.attendees.toString());
-            formBooking.append('organizer', this.organizer);
-            formBooking.append('roomId', this.room.id);
-
             const response = await fetch(`${Booking.baseURL}/${this.id}`, {
                 method: 'PUT',
-                body: formBooking,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.toUpdate()),
             });
 
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            if (!response.ok) {
+                const errorBody = await response.json().catch(() => ({}));
+                const msg = errorBody.message || `Erreur inconnue (code ${response.status})`;
+                throw new Error(msg);
+            }
 
             const bookingJSON = await response.json();
             return this.fromJSON(bookingJSON);
@@ -155,5 +151,9 @@ export class Booking {
 
     public getRoom(): Room {
         return this.room;
+    }
+
+    public getBookingEquipment(): BookingEquipment[] {
+        return this.bookingEquipments;
     }
 }

@@ -1,10 +1,10 @@
-import { Equipment } from './Equipment';
+import { RoomEquipment } from './RoomEquipment';
 
 export class Room {
     public id!: string;
     public name!: string;
     public capacity!: number;
-    public equipment: Equipment[] = [];
+    public roomEquipments: RoomEquipment[] = [];
 
     errors!: object;
 
@@ -18,7 +18,11 @@ export class Room {
         this.id = json?.id;
         this.name = json?.name;
         this.capacity = json?.capacity;
-        this.equipment = (json?.equipment || []).map((eq: any) => new Equipment().fromJSON(eq));
+        this.roomEquipments = (json?.roomEquipments || []).map((re: any) => ({
+            id: re.id ?? null,
+            quantity: re.quantity,
+            equipmentId: re.equipmentId ?? null,
+        }));
         return this;
     }
 
@@ -26,20 +30,28 @@ export class Room {
         return {
             name: this.name,
             capacity: this.capacity,
-            equipment: this.equipment
+            equipmentWithQuantities: this.roomEquipments.map(eq => ({
+                equipmentId: eq.equipmentId,
+                quantity: eq.quantity
+            }))
         };
     }
 
     public async create(): Promise<Room> {
         try {
-            const formRoom = new FormData();
-            formRoom.append('name', this.name);
-            formRoom.append('capacity', this.capacity.toString());
-            this.equipment.forEach(eq => formRoom.append('equipment', eq.id));
+            const payload = {
+                name: this.name,
+                capacity: this.capacity,
+                equipmentWithQuantities: this.roomEquipments.map(eq => ({
+                    equipmentId: eq.equipmentId,
+                    quantity: eq.quantity
+                }))
+            };
 
             const response = await fetch(`${Room.baseURL}`, {
                 method: 'POST',
-                body: formRoom
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -56,14 +68,19 @@ export class Room {
 
     public async update(): Promise<Room> {
         try {
-            const formRoom = new FormData();
-            formRoom.append('name', this.name);
-            formRoom.append('capacity', this.capacity.toString());
-            this.equipment.forEach(eq => formRoom.append('equipment', eq.id));
+            const payload = {
+                name: this.name,
+                capacity: this.capacity,
+                equipmentWithQuantities: this.roomEquipments.map(eq => ({
+                    equipmentId: eq.equipmentId,
+                    quantity: eq.quantity
+                }))
+            };
 
             const response = await fetch(`${Room.baseURL}/${this.id}`, {
                 method: 'PUT',
-                body: formRoom
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
@@ -106,6 +123,7 @@ export class Room {
             }
 
             const list = await response.json();
+
             return (list || []).map((item: any) => new Room().fromJSON(item));
         } catch (error) {
             console.error('Error fetching rooms:', error);
@@ -126,7 +144,7 @@ export class Room {
         return this.capacity;
     }
 
-    public getEquipment(): Equipment[] {
-        return this.equipment;
+    public getRoomEquipment(): RoomEquipment[] {
+        return this.roomEquipments;
     }
 }
