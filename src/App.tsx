@@ -3,18 +3,19 @@ import { Dashboard } from './components/Dashboard';
 import { RoomList } from './components/RoomList';
 import { EquipmentList } from './components/EquipmentList';
 import { BookingForm } from './components/BookingForm';
-import { Login } from './components/Login';
+//import { Login } from './components/Login';
 import { BookingHistory } from './components/BookingHistory';
+import { BookingCalendar } from './components/BookingCalendar';
 import { LayoutGrid, Calendar, BookOpen, Monitor, History } from 'lucide-react';
 
 function App() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking' | 'history' >('dashboard');
+    //const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking' | 'history' | 'calendar' >('dashboard');
 
-    const handleLogin = (email: string, password: string) => {
-        // Add your authentication logic here
-        setIsAuthenticated(true);
-    };
+    // const handleLogin = (email: string, password: string) => {
+    //     // Add your authentication logic here
+    //     setIsAuthenticated(true);
+    // };
 
     const renderPage = () => {
         switch (currentPage) {
@@ -28,6 +29,8 @@ function App() {
                 return <BookingForm />;
             case 'history':
                 return <BookingHistory />;
+            case 'calendar':
+                return <BookingCalendar />;
             default:
                 return <Dashboard />;
         }
@@ -54,6 +57,17 @@ function App() {
                         >
                             <LayoutGrid className="w-5 h-5 mr-3"/>
                             Tableau de bord
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage('calendar')}
+                            className={`w-full flex items-center px-4 py-2 rounded-lg mb-2 ${
+                                currentPage === 'booking'
+                                    ? 'bg-blue-500 text-white'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                        >
+                            <Calendar className="w-5 h-5 mr-3"/>
+                            Calendrier des réservations
                         </button>
                         <button
                             onClick={() => setCurrentPage('history')}
