@@ -32,7 +32,9 @@ export class Booking {
         this.bookingEquipments = (json?.bookingEquipments || []).map((be: any) => ({
             id: be.id ?? null,
             equipmentId: be.equipmentId ?? null,
-            quantity: be.quantity
+            quantity: be.quantity,
+            startTime: be.startTime,
+            endTime: be.endTime,
         }));
 
         return this;
@@ -49,6 +51,8 @@ export class Booking {
             bookingEquipments: this.bookingEquipments.map(be => ({
                 equipmentId: be.equipmentId,
                 quantity: be.quantity,
+                startTime: be.startTime,
+                endTime: be.endTime,
             }))
         };
     }
@@ -124,6 +128,23 @@ export class Booking {
             return bookings.map((b: any) => new Booking().fromJSON(b));
         } catch (error) {
             console.error('Error fetching bookings:', error);
+            return [];
+        }
+    }
+
+    public static async getAvailableEquipments(start: string, end: string): Promise<any[]> {
+        try {
+            const url = `${Booking.baseURL}/available-equipments?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) throw new Error(`Erreur lors de la récupération des équipements disponibles`);
+
+            return await response.json();
+        } catch (error) {
+            console.error('Erreur getAvailableEquipments:', error);
             return [];
         }
     }
