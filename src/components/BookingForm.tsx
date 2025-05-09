@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useStore } from "../store.ts";
 import { Room } from '../services/Room';
 import { Booking } from '../services/Booking';
-import {useStore} from "../store.ts";
-import {Equipment} from "../services/Equipment.ts";
-import {RoomEquipment} from "../services/RoomEquipment.ts";
+import { Equipment } from "../services/Equipment.ts";
+import { RoomEquipment } from "../services/RoomEquipment.ts";
+import { roundUpToNextHalfHour, formatDateTimeLocal } from '../composable/formatTimestamp.ts';
 
 export const BookingForm = () => {
     const { fetchEquipment } = useStore();
@@ -12,15 +13,29 @@ export const BookingForm = () => {
     const [availableEquipments, setAvailableEquipments] = useState<any[]>([]);
     const [availableEquipmentsMobile, setAvailableEquipmentsMobile] = useState<any[]>([]);
 
-    const [formData, setFormData] = useState({
+    const now = new Date();
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+    const roundedNow = roundUpToNextHalfHour(now);
+    const roundedOneHourLater = roundUpToNextHalfHour(oneHourLater);
+    const formattedStartTime = formatDateTimeLocal(roundedNow);
+    const formattedEndTime = formatDateTimeLocal(roundedOneHourLater);
+
+    const initialBookingData = {
         title: '',
         roomId: '',
-        startTime: '',
-        endTime: '',
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
         attendees: '',
-        bookingEquipments: [] as { equipmentId: string, quantity: number, startTime: string, endTime: string }[],
+        bookingEquipments: [] as {
+            equipmentId: string;
+            quantity: number;
+            startTime: string;
+            endTime: string;
+        }[],
         organizer: '',
-    });
+    };
+
+    const [formData, setFormData] = useState(initialBookingData);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -121,15 +136,7 @@ export const BookingForm = () => {
 
             alert("Réservation créée avec succès!");
             setErrorMessage('');
-            setFormData({
-                title: '',
-                roomId: '',
-                startTime: '',
-                endTime: '',
-                attendees: '',
-                bookingEquipments: [],
-                organizer: '',
-            });
+            setFormData(initialBookingData);
         } catch (error) {
             console.error("Error creating booking:", error);
             if (error instanceof Error) {
@@ -203,7 +210,10 @@ export const BookingForm = () => {
                         <input
                             type="datetime-local"
                             value={formData.startTime}
-                            onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                            onChange={(e) =>
+                                setFormData({...formData, startTime: e.target.value})
+                            }
+                            min={formatDateTimeLocal(new Date())}
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
@@ -216,7 +226,10 @@ export const BookingForm = () => {
                         <input
                             type="datetime-local"
                             value={formData.endTime}
-                            onChange={(e) => setFormData({...formData, endTime: e.target.value})}
+                            onChange={(e) =>
+                                setFormData({...formData, endTime: e.target.value})
+                            }
+                            min={formData.startTime}
                             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                         />
@@ -285,7 +298,7 @@ export const BookingForm = () => {
                                                             ...prev,
                                                             bookingEquipments: prev.bookingEquipments.map((eq) =>
                                                                 eq.equipmentId === req.equipmentId
-                                                                    ? { ...eq, quantity: qty }
+                                                                    ? {...eq, quantity: qty}
                                                                     : eq
                                                             ),
                                                         };
@@ -320,7 +333,14 @@ export const BookingForm = () => {
 
                 {errorMessage && (
                     <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                        {errorMessage}
+                        {errorMessage
+                            .split('\n')
+                            .filter(line => line.trim() !== '')
+                            .map((line, index) => (
+                                <p key={index} className={index > 0 ? 'ml-4' : ''}>
+                                    {index === 0 ? line : `- ${line}`}
+                                </p>
+                            ))}
                     </div>
                 )}
 
