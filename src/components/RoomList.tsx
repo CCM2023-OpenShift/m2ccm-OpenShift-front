@@ -1,42 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { Monitor, Users, Plus, Edit, Trash, X } from 'lucide-react';
-import { Room, Equipment } from '../types';
+import { Room } from '../types';
 
 export const RoomList = () => {
-    const { rooms, equipment, fetchRooms, fetchEquipment, addRoom, updateRoom, deleteRoom } = useStore();
+    const { rooms, equipment, fetchRooms, fetchEquipmentFixed, addRoom, updateRoom, deleteRoom } = useStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRoom, setEditingRoom] = useState<Partial<Room> | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         capacity: '',
-        equipment: [] as string[],
+        roomEquipments: [] as { equipmentId: string; quantity: number }[],
     });
 
     useEffect(() => {
-        fetchRooms();
-        fetchEquipment();
-    }, [fetchRooms, fetchEquipment]);
+        void fetchRooms();
+        void fetchEquipmentFixed();
+    }, [fetchRooms, fetchEquipmentFixed]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
         const roomData = {
-            ...formData,
+            name: formData.name,
             capacity: Number(formData.capacity),
-            equipment: formData.equipment
-                .map(id => equipment.find(e => e.id === parseInt(id)))
-                .filter((e): e is Equipment => e !== undefined),
+            roomEquipments: formData.roomEquipments.map((re) => ({
+                id: '',
+                quantity: re.quantity,
+                equipmentId: re.equipmentId,
+                roomId: '',
+            })),
         };
 
         if (editingRoom?.id) {
             await updateRoom({ ...roomData, id: editingRoom.id } as Room);
         } else {
             await addRoom(roomData);
+            await fetchRooms();
         }
 
         setIsModalOpen(false);
         setEditingRoom(null);
-        setFormData({ name: '', capacity: '', equipment: [] });
+        setFormData({ name: '', capacity: '', roomEquipments: [] });
     };
 
     const handleEdit = (room: Room) => {
@@ -44,7 +49,12 @@ export const RoomList = () => {
         setFormData({
             name: room.name,
             capacity: room.capacity.toString(),
-            equipment: room.equipment.map(e => e.id.toString()),
+            roomEquipments: room.roomEquipments.map((re) => ({
+                id: re.id,
+                equipmentId: re.equipmentId,
+                quantity: re.quantity,
+                roomId: re.roomId,
+            })),
         });
         setIsModalOpen(true);
     };
@@ -62,7 +72,7 @@ export const RoomList = () => {
                 <button
                     onClick={() => {
                         setEditingRoom(null);
-                        setFormData({ name: '', capacity: '', equipment: [] });
+                        setFormData({ name: '', capacity: '', roomEquipments: [] });
                         setIsModalOpen(true);
                     }}
                     className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center"
@@ -100,19 +110,29 @@ export const RoomList = () => {
 
                         <div className="mb-4">
                             <h3 className="font-semibold mb-2">Équipements:</h3>
-                            <ul className="space-y-2">
-                                {room.equipment.map((equip) => (
-                                    <li key={equip.id} className="flex items-center">
-                                        <Monitor className="w-4 h-4 text-gray-500 mr-2" />
-                                        <span>{equip.name}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                            {Array.isArray(room.roomEquipments) && room.roomEquipments.length > 0 ? (
+                                <ul className="space-y-2">
+                                    {room.roomEquipments.map((re, index) => {
+                                        const matchedEquipment = equipment.find(eq => eq.id === re.equipmentId);
+                                        if (!matchedEquipment || matchedEquipment.mobile) return null;
+
+                                        return (
+                                            <li key={index} className="flex items-center">
+                                                <Monitor className="w-4 h-4 text-gray-500 mr-2" />
+                                                <span>{matchedEquipment.name} – {re.quantity}x</span>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            ) : (
+                                <p className="text-gray-500">Aucun équipement</p>
+                            )}
                         </div>
                     </div>
                 ))}
             </div>
 
+            {/* Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md">
@@ -156,29 +176,67 @@ export const RoomList = () => {
                                 />
                             </div>
 
-                            <div className="mb-6">
-                                <label className="block text-gray-700 font-semibold mb-2">
-                                    Équipements
-                                </label>
-                                <div className="space-y-2">
-                                    {equipment.map((equip) => (
-                                        <label key={equip.id} className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.equipment.includes(equip.id)}
-                                                onChange={(e) => {
-                                                    const newEquipment = e.target.checked
-                                                        ? [...formData.equipment, equip.id]
-                                                        : formData.equipment.filter((id) => id !== equip.id);
-                                                    setFormData({ ...formData, equipment: newEquipment });
-                                                }}
-                                                className="mr-2"
-                                            />
-                                            {equip.name}
-                                        </label>
-                                    ))}
+                            {equipment.filter((re) => !re.mobile).length > 0 && (
+                                <div className="mb-6">
+                                    <label className="block text-gray-700 font-semibold mb-2">
+                                        Équipements
+                                    </label>
+                                    <div className="max-h-64 overflow-y-auto border rounded p-2">
+                                        {equipment
+                                            .filter((re) => !re.mobile)
+                                            .map((re) => {
+                                                const name = re.name;
+                                                const existing = formData.roomEquipments.find(e => e.equipmentId === re.id);
+                                                return (
+                                                    <div key={re.id} className="flex items-center justify-between mb-2">
+                                                        <label className="flex items-center space-x-2 w-full">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={!!existing}
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) {
+                                                                        setFormData((prev) => ({
+                                                                            ...prev,
+                                                                            roomEquipments: [
+                                                                                ...prev.roomEquipments,
+                                                                                { equipmentId: re.id, quantity: 1 },
+                                                                            ],
+                                                                        }));
+                                                                    } else {
+                                                                        setFormData((prev) => ({
+                                                                            ...prev,
+                                                                            roomEquipments: prev.roomEquipments.filter(
+                                                                                (eq) => eq.equipmentId !== re.id
+                                                                            ),
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <span className="flex-1">{name}</span>
+                                                        </label>
+                                                        {existing && (
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                className="w-16 border rounded px-1 ml-2"
+                                                                value={existing.quantity}
+                                                                onChange={(e) => {
+                                                                    const qty = Number(e.target.value);
+                                                                    setFormData((prev) => ({
+                                                                        ...prev,
+                                                                        roomEquipments: prev.roomEquipments.map((eq) =>
+                                                                            eq.equipmentId === re.id ? { ...eq, quantity: qty } : eq
+                                                                        ),
+                                                                    }));
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             <button
                                 type="submit"
