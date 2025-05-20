@@ -7,15 +7,17 @@ import { BookingForm } from './components/BookingForm';
 import { BookingHistory } from './components/BookingHistory';
 import { BookingCalendar } from './components/BookingCalendar';
 import { LayoutGrid, Calendar, BookOpen, Monitor, History } from 'lucide-react';
+import { useKeycloak } from '@react-keycloak/web';
 
 function App() {
-    //const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const { keycloak, initialized } = useKeycloak();
     const [currentPage, setCurrentPage] = useState<'dashboard' | 'rooms' | 'equipment' | 'booking' | 'history' | 'calendar' >('dashboard');
 
-    // const handleLogin = (email: string, password: string) => {
-    //     // Add your authentication logic here
-    //     setIsAuthenticated(true);
-    // };
+    if (!initialized) return <div>Chargement…</div>;
+    if (!keycloak.authenticated) {
+        keycloak.login();
+        return null;
+    }
 
     const renderPage = () => {
         switch (currentPage) {
@@ -42,7 +44,6 @@ function App() {
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
-            {/* Sidebar */}
             <div className="w-64 bg-white shadow-md">
                 <div className="p-6">
                     <h1 className="text-2xl font-bold text-gray-800 mb-8">Réservation</h1>
@@ -116,13 +117,21 @@ function App() {
                     </nav>
                 </div>
             </div>
-
-            {/* Main content */}
-            <div className="flex-1">
-                {renderPage()}
-            </div>
+            <div className="flex-1">{renderPage()}</div>
         </div>
     );
 }
+
+const SidebarButton = ({ label, icon, page, currentPage, setCurrentPage }) => (
+    <button
+        onClick={() => setCurrentPage(page)}
+        className={`w-full flex items-center px-4 py-2 rounded-lg mb-2 ${
+            currentPage === page ? 'bg-blue-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+        }`}
+    >
+        <span className="w-5 h-5 mr-3">{icon}</span>
+        {label}
+    </button>
+);
 
 export default App;
